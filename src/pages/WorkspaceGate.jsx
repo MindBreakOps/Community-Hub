@@ -1,64 +1,143 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Building2, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Building2, ArrowLeft, Home, ChevronLeft } from 'lucide-react';
 
 export default function WorkspaceGate() {
   const [slug, setSlug] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
 
   const handleContinue = (e) => {
 	e.preventDefault();
 	if (slug.trim()) {
-	  // Redirect to the tenant-specific login page
 	  navigate(`/${slug.trim().toLowerCase()}/login`);
 	}
   };
 
   return (
-	<div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center overflow-hidden font-['Tajawal']" dir="rtl">
-	  {/* Background Effects */}
-	  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-		<div className="absolute top-[-30%] right-[-20%] w-[70vw] h-[70vw] rounded-full bg-[radial-gradient(circle,rgba(220,38,38,0.12)_0%,transparent_70%)] animate-[pulse_8s_ease-in-out_infinite_alternate]" />
-		<div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:48px_48px]" />
-	  </div>
+	<>
+	  <style>{`
+		@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+		* { box-sizing: border-box; }
+		body { margin: 0; }
+		@keyframes fadeUp {
+		  from { opacity: 0; transform: translateY(20px); }
+		  to   { opacity: 1; transform: translateY(0); }
+		}
+		.card-in { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both; }
+		@media (prefers-reduced-motion: reduce) { .card-in { animation: none; } }
+	  `}</style>
 
-	  <div className="relative z-10 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 w-full max-w-[420px] mx-4 shadow-2xl">
-		<div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-red-800 via-red-500 to-red-800 rounded-t-2xl" />
-		
-		<div className="w-16 h-16 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-md">
-		   <Building2 size={32} className="text-white" />
-		</div>
-		
-		<div className="text-2xl font-black text-white text-center tracking-tight mb-2">مرحباً بك في حصاد</div>
-		<div className="text-xs text-white/50 text-center mb-8 leading-relaxed">
-		  يرجى إدخال المعرف الخاص بمجتمعك السكني للوصول إلى بوابة الدخول الخاصة بك.
-		</div>
+	  <div
+		style={{ fontFamily: "'Tajawal', sans-serif" }}
+		className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12"
+		dir="rtl"
+	  >
+		{/* Back to landing */}
+		<Link
+		  to="/"
+		  className="mb-8 flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors group"
+		>
+		  <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+		  العودة للصفحة الرئيسية
+		</Link>
 
-		<form onSubmit={handleContinue}>
-		  <div className="mb-6">
-			<label className="block text-xs font-bold text-white/70 mb-2">معرف المجتمع (Workspace ID)</label>
-			<div className="relative">
-			  <input 
-				type="text" 
-				value={slug}
-				onChange={(e) => setSlug(e.target.value)}
-				className="w-full bg-black/20 border border-white/10 rounded-lg py-3 px-4 text-white text-left font-['IBM_Plex_Mono'] outline-none focus:bg-black/40 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20 transition-all"
-				placeholder="e.g. alnaseem"
-				required
-				dir="ltr"
+		{/* Card */}
+		<div className="card-in w-full max-w-[420px]">
+		  {/* Brand strip */}
+		  <div className="flex items-center gap-3 justify-center mb-8">
+			<div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-md">
+			  <img
+				src="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/nas.png"
+				alt="Logo"
+				className="w-6 h-6 object-contain invert"
+				onError={(e) => {
+				  e.currentTarget.style.display = 'none';
+				  e.currentTarget.parentElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>';
+				}}
 			  />
+			</div>
+			<span className="text-2xl font-black text-slate-900 tracking-tight">حصاد</span>
+		  </div>
+
+		  <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+			{/* Top accent */}
+			<div className="h-1 bg-gradient-to-l from-red-800 via-red-500 to-red-800" />
+
+			<div className="p-8">
+			  {/* Icon */}
+			  <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+				<Building2 size={26} className="text-slate-700" />
+			  </div>
+
+			  {/* Heading */}
+			  <div className="text-center mb-7">
+				<h1 className="text-2xl font-black text-slate-900 mb-1.5">أدخل معرّف مجتمعك</h1>
+				<p className="text-sm text-slate-500 font-medium leading-relaxed">
+				  كل مجتمع سكني لديه معرّف فريد. يمكنك الحصول عليه من مسؤول مجتمعك.
+				</p>
+			  </div>
+
+			  {/* Input */}
+			  <form onSubmit={handleContinue}>
+				<div className="mb-5">
+				  <label className="block text-xs font-black text-slate-500 mb-1.5 tracking-wide">
+					معرّف المجتمع (Workspace ID)
+				  </label>
+				  <div className={`flex items-center bg-slate-50 border rounded-xl overflow-hidden transition-all duration-200 ${isFocused ? 'border-red-500 ring-2 ring-red-500/15 bg-white' : 'border-slate-200'}`}>
+					<span
+					  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+					  className="text-slate-400 text-sm px-3 border-l border-slate-200 py-3 select-none bg-slate-100/50"
+					>
+					  hasad.operix/
+					</span>
+					<input
+					  type="text"
+					  value={slug}
+					  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
+					  onFocus={() => setIsFocused(true)}
+					  onBlur={() => setIsFocused(false)}
+					  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+					  className="flex-1 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder-slate-400"
+					  placeholder="alnaseem"
+					  required
+					  dir="ltr"
+					/>
+				  </div>
+				  <p className="mt-1.5 text-xs text-slate-400 font-medium">
+					أحرف إنجليزية وأرقام وشرطات فقط
+				  </p>
+				</div>
+
+				<button
+				  type="submit"
+				  disabled={!slug.trim()}
+				  className="w-full flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 transition-all shadow-md shadow-slate-900/10"
+				>
+				  <span>متابعة</span>
+				  <ChevronLeft size={16} />
+				</button>
+			  </form>
 			</div>
 		  </div>
 
-		  <button 
-			type="submit" 
-			className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 font-extrabold text-[15px] rounded-lg shadow-lg hover:bg-slate-100 hover:-translate-y-px transition-all"
-		  >
-			<span>متابعة</span>
-			<ArrowLeft size={18} />
-		  </button>
-		</form>
+		  {/* Footer links */}
+		  <div className="mt-6 flex items-center justify-center gap-5 text-xs text-slate-400">
+			<Link to="/" className="flex items-center gap-1 hover:text-slate-700 font-bold transition-colors">
+			  <Home size={12} />
+			  الرئيسية
+			</Link>
+			<span className="text-slate-200">|</span>
+			<Link to="/subscriptions" className="hover:text-slate-700 font-bold transition-colors">
+			  الباقات والاشتراكات
+			</Link>
+			<span className="text-slate-200">|</span>
+			<a href="mailto:support@operix-solutions.com" className="hover:text-slate-700 font-bold transition-colors">
+			  الدعم الفني
+			</a>
+		  </div>
+		</div>
 	  </div>
-	</div>
+	</>
   );
 }
