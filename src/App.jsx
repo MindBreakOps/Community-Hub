@@ -8,6 +8,7 @@ import Subscription from './pages/Subscription';
 
 // Layouts & Auth
 import WorkspaceGate from './pages/WorkspaceGate';
+import WorkspaceRegistration from './pages/WorkspaceRegistration';
 import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -16,10 +17,10 @@ import DashboardOverview from './pages/DashboardOverview';
 import Residents from './pages/Residents';
 import VirtualMap from './pages/VirtualMap';
 import Competencies from './pages/Competencies';
+import Profile from './pages/Profile';
 import Committee from './pages/Committee';
 import Certificates from './pages/Certificates';
 import Settings from './pages/Settings';
-
 // A wrapper to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -50,6 +51,7 @@ function AppRoutes() {
         path="/subscriptions" 
         element={<Subscription />} 
       />
+      <Route path="/:workspaceSlug/register" element={<WorkspaceRegistration />} />
 
       {/* 3. The Gate: Ask for Workspace ID */}
       <Route 
@@ -58,6 +60,7 @@ function AppRoutes() {
           user && workspace 
             ? <Navigate to={`/${workspace.slug}/dashboard`} replace /> 
             : <WorkspaceGate />
+            
         } 
       />
       
@@ -80,13 +83,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="dashboard" element={<DashboardOverview />} />
-        <Route path="residents" element={<Residents />} />
-        <Route path="map" element={<VirtualMap />} />
-        <Route path="competencies" element={<Competencies />} />
-        <Route path="committee" element={<Committee />} />
-        <Route path="certificates" element={<Certificates />} />
-        <Route path="settings" element={<Settings />} />
+       <Route path="dashboard" element={<DashboardOverview />} />
+       <Route path="residents" element={<Residents />} />
+       <Route path="map" element={<VirtualMap />} />
+       <Route path="competencies" element={<Competencies />} />
+       <Route path="profile" element={<Profile />} />
+       <Route path="committee" element={<Committee />} />
+       <Route path="certificates" element={<Certificates />} />
+       <Route path="settings" element={<Settings />} />
       </Route>
       
       {/* Catch-all redirect */}

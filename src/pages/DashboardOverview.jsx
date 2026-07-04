@@ -227,7 +227,7 @@ export default function DashboardOverview() {
 	{
 	  icon: Users,
 	  label: 'إجمالي السكان',
-	  value: stats.total.toLocaleString('ar-SA'),
+	  value: stats.total.toLocaleString('en-SA'),
 	  sub: 'مقيد في السجل المدني',
 	  accentColor: '#1e293b',
 	  iconBg: 'bg-slate-100',

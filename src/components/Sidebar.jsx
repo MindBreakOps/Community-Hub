@@ -1,12 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, Map, Award, Shield, Settings, FileText } from 'lucide-react';
+import { Home, Users, Map, Award, Shield, Settings, FileText, User, Share2, QrCode } from 'lucide-react';
 
-// Make sure these two words are here:
 export default function Sidebar() {
   const { user, workspace, signOut } = useAuth();
-// ...
   const role = user?.role?.toLowerCase() || 'citizen';
   const isManager = role === 'admin' || role === 'manager';
 
@@ -38,7 +36,7 @@ export default function Sidebar() {
 	  <div className="flex-1 overflow-y-auto px-3 pt-4">
 		<div className="text-[9px] font-extrabold text-white/20 uppercase tracking-[2px] px-2 mb-2 font-['IBM_Plex_Mono']">رئيسي</div>
 		
-		<NavLink to={`${basePath}/dashboard`} className={navItemClass} end>
+		<NavLink to={`${basePath}/dashboard`} className={navItemClass}>
 		  <Home size={18} /><span>لوحة القيادة</span>
 		</NavLink>
 		<NavLink to={`${basePath}/residents`} className={navItemClass}>
@@ -46,6 +44,12 @@ export default function Sidebar() {
 		</NavLink>
 		<NavLink to={`${basePath}/map`} className={navItemClass}>
 		  <Map size={18} /><span>الخريطة الذكية</span>
+		</NavLink>
+		<NavLink to={`${basePath}/competencies`} className={navItemClass}>
+		  <Award size={18} /><span>الكفاءات والخبرات</span>
+		</NavLink>
+		<NavLink to={`${basePath}/profile`} className={navItemClass}>
+		  <User size={18} /><span>الملف الشامل</span>
 		</NavLink>
 
 		{isManager && (
