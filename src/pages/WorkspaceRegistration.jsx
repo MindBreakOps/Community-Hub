@@ -5,7 +5,7 @@ import {
   UploadCloud, CheckCircle, ShieldCheck, LogOut, ArrowRight, 
   UserCheck, Star, AlertCircle, FileText, ShieldAlert,
   User, CreditCard, Phone, MapPin, Home as HomeIcon, Users,
-  Briefcase, Activity, HeartPulse, PhoneCall, GraduationCap
+  Briefcase, Activity, HeartPulse, PhoneCall, GraduationCap, Building2
 } from 'lucide-react';
 
 export default function WorkspaceRegistration() {
