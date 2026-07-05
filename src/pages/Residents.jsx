@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { Search, Plus, RefreshCw, X, User } from 'lucide-react';
+import { Search, Plus, RefreshCw, X, User, FileText, Image as ImageIcon } from 'lucide-react';
 
 const INITIAL_FORM_STATE = {
   full_name: '', national_id: '', phone_number: '', location: 'شمال', house_number: '', 
   profession: '', status: 'pending', marital_status: 'أعزب', housing_type: 'مالك', 
   family_members_count: 1, income_level: 'اخضر', owned_properties_count: 0, special_issues: '',
   blood_type: '', chronic_diseases: '', allergies: '', emergency_contact_name: '', 
-  emergency_phone: '', academic_degree: '', company_name: '', cv_summary: ''
+  emergency_phone: '', academic_degree: '', company_name: '', cv_summary: '', id_image_url: ''
 };
 
 export default function Residents() {
@@ -24,7 +24,6 @@ export default function Residents() {
   const [viewRecord, setViewRecord] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Check if the current user has permission to edit/approve
   const isManager = user?.role === 'admin' || user?.role === 'manager';
 
   const fetchResidents = async () => {
@@ -36,16 +35,13 @@ export default function Residents() {
 
   useEffect(() => { fetchResidents(); }, []);
 
-  // Handle Add & Edit Submission
   const handleSave = async (e) => {
 	e.preventDefault();
 	setSaving(true);
 	try {
 	  if (currentRecord.id) {
-		// UPDATE Existing Record
 		await supabase.from('residents').update(currentRecord).eq('id', currentRecord.id);
 	  } else {
-		// INSERT New Record
 		await supabase.from('residents').insert({
 		  ...currentRecord,
 		  workspace_id: workspace.id,
@@ -87,7 +83,7 @@ export default function Residents() {
 		  <input 
 			type="text" value={search} onChange={(e) => setSearch(e.target.value)}
 			placeholder="بحث بالاسم، الرقم الوطني، القطعة..." 
-			className="w-full bg-white border border-slate-300 rounded-lg py-2 pl-3 pr-10 text-sm outline-none focus:border-red-500 transition-all"
+			className="w-full bg-white border border-slate-300 rounded-lg py-2 pl-3 pr-10 text-sm outline-none focus:border-orange-500 transition-all"
 		  />
 		</div>
 		
@@ -96,8 +92,8 @@ export default function Residents() {
 			<RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> تحديث
 		  </button>
 		  {isManager && (
-			<button onClick={openAdd} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-br from-red-500 to-red-800 text-white rounded-lg text-sm font-bold shadow-md hover:-translate-y-px transition-all">
-			  <Plus size={16} /> إضافة سجل
+			<button onClick={openAdd} className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-bold shadow-md hover:-translate-y-px transition-all">
+			  <Plus size={16} /> إضافة سجل يدوي
 			</button>
 		  )}
 		</div>
@@ -110,9 +106,9 @@ export default function Residents() {
 			<tr>
 			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 whitespace-nowrap">الاسم الرباعي</th>
 			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 whitespace-nowrap">الرقم الوطني</th>
-			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 whitespace-nowrap">المهنة</th>
 			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 whitespace-nowrap">الموقع والقطعة</th>
-			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 text-center whitespace-nowrap">حالة الاعتماد</th>
+			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 text-center whitespace-nowrap">المستند (الهوية)</th>
+			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 text-center whitespace-nowrap">الاعتماد</th>
 			  <th className="py-3 px-4 text-xs font-extrabold text-slate-500 uppercase border-b border-slate-200 text-center whitespace-nowrap">إجراءات</th>
 			</tr>
 		  </thead>
@@ -123,9 +119,19 @@ export default function Residents() {
 			  <tr key={row.id} className="hover:bg-slate-50 border-b border-slate-100 transition-colors">
 				<td className="py-3 px-4 text-sm font-extrabold text-slate-900 whitespace-nowrap">{row.full_name}</td>
 				<td className="py-3 px-4 text-[11px] font-['IBM_Plex_Mono'] text-slate-500 whitespace-nowrap">{row.national_id}</td>
-				<td className="py-3 px-4 text-sm font-semibold text-slate-600 whitespace-nowrap">{row.profession || '—'}</td>
 				<td className="py-3 px-4 whitespace-nowrap"><span className="bg-slate-100 border border-slate-200 text-slate-700 rounded-md px-2 py-1 text-[11px] font-bold">{row.location} · ق {row.house_number || '—'}</span></td>
 				
+				{/* ID Document Column */}
+				<td className="py-3 px-4 text-center whitespace-nowrap">
+				  {row.id_image_url ? (
+					<a href={row.id_image_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-300 rounded-md text-[11px] font-bold transition-colors">
+					  <ImageIcon size={12} /> عرض الهوية
+					</a>
+				  ) : (
+					<span className="text-[11px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded border border-slate-100">بدون مرفق</span>
+				  )}
+				</td>
+
 				<td className="py-3 px-4 text-center whitespace-nowrap">
 				  {row.status === 'approved' ? (
 					<span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full text-[10px] font-bold">معتمد ✔</span>
@@ -138,7 +144,7 @@ export default function Residents() {
 				
 				<td className="py-3 px-4 text-center whitespace-nowrap">
 				  <div className="flex justify-center gap-2">
-					<button onClick={() => openView(row)} className="text-emerald-600 hover:bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 text-[11px] font-bold transition-colors">عرض</button>
+					<button onClick={() => openView(row)} className="text-slate-600 hover:bg-slate-100 px-2.5 py-1 rounded border border-slate-200 text-[11px] font-bold transition-colors">عرض ومطابقة</button>
 					{isManager && (
 					  <>
 						<button onClick={() => openEdit(row)} className="text-blue-600 hover:bg-blue-50 px-2.5 py-1 rounded border border-blue-200 text-[11px] font-bold transition-colors">تعديل</button>
@@ -153,13 +159,13 @@ export default function Residents() {
 		</table>
 	  </div>
 
-	  {/* --- ADD / EDIT MODAL --- */}
+	  {/* --- ADD / EDIT MODAL (REMAINS THE SAME) --- */}
 	  {showAddModal && (
 		<div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-sm">
 		  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 			<div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
 			  <h2 className="text-lg font-black flex items-center gap-2 text-slate-900">
-				<User className="text-red-500" size={20}/> 
+				<User className="text-orange-500" size={20}/> 
 				{currentRecord.id ? 'تعديل السجل' : 'إضافة سجل مواطن جديد'}
 			  </h2>
 			  <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-800 transition-colors"><X size={24}/></button>
@@ -173,41 +179,41 @@ export default function Residents() {
 				
 				<div className="md:col-span-2">
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">الاسم الرباعي *</label>
-				  <input type="text" value={currentRecord.full_name} onChange={e => setCurrentRecord({...currentRecord, full_name: e.target.value})} required className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.full_name} onChange={e => setCurrentRecord({...currentRecord, full_name: e.target.value})} required className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">الرقم الوطني *</label>
-				  <input type="text" value={currentRecord.national_id} onChange={e => setCurrentRecord({...currentRecord, national_id: e.target.value})} required className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
+				  <input type="text" value={currentRecord.national_id} onChange={e => setCurrentRecord({...currentRecord, national_id: e.target.value})} required className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
 				</div>
 				
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الهاتف</label>
-				  <input type="text" value={currentRecord.phone_number} onChange={e => setCurrentRecord({...currentRecord, phone_number: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
+				  <input type="text" value={currentRecord.phone_number} onChange={e => setCurrentRecord({...currentRecord, phone_number: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">المنطقة</label>
-				  <select value={currentRecord.location} onChange={e => setCurrentRecord({...currentRecord, location: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all">
+				  <select value={currentRecord.location} onChange={e => setCurrentRecord({...currentRecord, location: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all">
 					<option value="شمال">شمال</option><option value="وسط">وسط</option><option value="جنوب">جنوب</option>
 				  </select>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم القطعة</label>
-				  <input type="text" value={currentRecord.house_number} onChange={e => setCurrentRecord({...currentRecord, house_number: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono']"/>
+				  <input type="text" value={currentRecord.house_number} onChange={e => setCurrentRecord({...currentRecord, house_number: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono']"/>
 				</div>
 
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">السكن / الملكية</label>
-				  <select value={currentRecord.housing_type} onChange={e => setCurrentRecord({...currentRecord, housing_type: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all">
+				  <select value={currentRecord.housing_type} onChange={e => setCurrentRecord({...currentRecord, housing_type: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all">
 					<option value="مالك">مالك</option><option value="مستأجر">مستأجر</option><option value="ساكن مجاناً">ساكن مجاناً</option>
 				  </select>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">أفراد الأسرة</label>
-				  <input type="number" min="1" value={currentRecord.family_members_count} onChange={e => setCurrentRecord({...currentRecord, family_members_count: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono']"/>
+				  <input type="number" min="1" value={currentRecord.family_members_count} onChange={e => setCurrentRecord({...currentRecord, family_members_count: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono']"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">مستوى الدخل</label>
-				  <select value={currentRecord.income_level} onChange={e => setCurrentRecord({...currentRecord, income_level: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all">
+				  <select value={currentRecord.income_level} onChange={e => setCurrentRecord({...currentRecord, income_level: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all">
 					<option value="اخضر">مستقر (أخضر)</option><option value="اصفر">متوسط (أصفر)</option><option value="احمر">ضعيف (أحمر)</option>
 				  </select>
 				</div>
@@ -217,30 +223,26 @@ export default function Residents() {
 				
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">فصيلة الدم</label>
-				  <select value={currentRecord.blood_type} onChange={e => setCurrentRecord({...currentRecord, blood_type: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono']">
+				  <select value={currentRecord.blood_type} onChange={e => setCurrentRecord({...currentRecord, blood_type: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono']">
 					<option value="">غير محدد</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
 				  </select>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">أمراض مزمنة</label>
-				  <input type="text" value={currentRecord.chronic_diseases} onChange={e => setCurrentRecord({...currentRecord, chronic_diseases: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all" placeholder="سكري، ضغط..."/>
+				  <input type="text" value={currentRecord.chronic_diseases} onChange={e => setCurrentRecord({...currentRecord, chronic_diseases: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all" placeholder="سكري، ضغط..."/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">حساسية أدوية</label>
-				  <input type="text" value={currentRecord.allergies} onChange={e => setCurrentRecord({...currentRecord, allergies: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.allergies} onChange={e => setCurrentRecord({...currentRecord, allergies: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 				
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">جهة الاتصال (طوارئ)</label>
-				  <input type="text" value={currentRecord.emergency_contact_name} onChange={e => setCurrentRecord({...currentRecord, emergency_contact_name: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
-				</div>
-				<div>
-				  <label className="block text-xs font-bold text-slate-600 mb-1.5">صلة القرابة</label>
-				  <input type="text" value={currentRecord.emergency_relation} onChange={e => setCurrentRecord({...currentRecord, emergency_relation: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.emergency_contact_name} onChange={e => setCurrentRecord({...currentRecord, emergency_contact_name: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">هاتف الطوارئ</label>
-				  <input type="text" value={currentRecord.emergency_phone} onChange={e => setCurrentRecord({...currentRecord, emergency_phone: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
+				  <input type="text" value={currentRecord.emergency_phone} onChange={e => setCurrentRecord({...currentRecord, emergency_phone: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-['IBM_Plex_Mono'] text-left" dir="ltr"/>
 				</div>
 
 				{/* 3. Professional */}
@@ -248,15 +250,15 @@ export default function Residents() {
 				
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">المسمى المهني</label>
-				  <input type="text" value={currentRecord.profession} onChange={e => setCurrentRecord({...currentRecord, profession: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.profession} onChange={e => setCurrentRecord({...currentRecord, profession: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">المؤهل الأكاديمي</label>
-				  <input type="text" value={currentRecord.academic_degree} onChange={e => setCurrentRecord({...currentRecord, academic_degree: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.academic_degree} onChange={e => setCurrentRecord({...currentRecord, academic_degree: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 				<div>
 				  <label className="block text-xs font-bold text-slate-600 mb-1.5">جهة العمل</label>
-				  <input type="text" value={currentRecord.company_name} onChange={e => setCurrentRecord({...currentRecord, company_name: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all"/>
+				  <input type="text" value={currentRecord.company_name} onChange={e => setCurrentRecord({...currentRecord, company_name: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"/>
 				</div>
 
 				{/* 4. Approval Status (Admins/Managers Only) */}
@@ -283,10 +285,9 @@ export default function Residents() {
 				)}
 			  </div>
 			  
-			  {/* Form Actions */}
 			  <div className="flex justify-end gap-3 mt-8 pt-5 border-t border-slate-200 sticky bottom-0 bg-white">
 				<button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-50 transition-colors">إلغاء</button>
-				<button type="submit" disabled={saving} className="px-8 py-2.5 bg-gradient-to-br from-red-500 to-red-800 text-white font-bold rounded-lg shadow-md hover:-translate-y-px transition-all disabled:opacity-50">
+				<button type="submit" disabled={saving} className="px-8 py-2.5 bg-slate-900 text-white font-bold rounded-lg shadow-md hover:-translate-y-px transition-all disabled:opacity-50">
 				  {saving ? 'جاري الحفظ...' : 'حفظ بيانات السجل'}
 				</button>
 			  </div>
@@ -295,16 +296,18 @@ export default function Residents() {
 		</div>
 	  )}
 
-	  {/* --- VIEW MODAL --- */}
+	  {/* --- VIEW MODAL (WITH ID IMAGE PREVIEW) --- */}
 	  {showViewModal && viewRecord && (
-		<div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm">
-		  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-			<div className="bg-slate-900 p-6 text-center border-b-4 border-red-600 relative">
+		<div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+		  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8">
+			<div className="bg-slate-900 p-6 text-center border-b-4 border-orange-500 relative">
 			  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-inner">
 				<img src="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/nas.png" className="w-10 h-10 object-contain" alt="Logo"/>
 			  </div>
 			  <h2 className="text-white text-lg font-black m-0 leading-tight">{viewRecord.full_name}</h2>
 			  <p className="text-white/60 font-['IBM_Plex_Mono'] text-sm tracking-widest mt-1.5">{viewRecord.national_id}</p>
+			  
+			  {/* Status Badge */}
 			  <div className="absolute top-4 right-4">
 				{viewRecord.status === 'approved' ? (
 				  <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-md">معتمد ✔</span>
@@ -317,7 +320,7 @@ export default function Residents() {
 			</div>
 			
 			<div className="p-6 bg-slate-50">
-			  <div className="grid grid-cols-2 gap-3">
+			  <div className="grid grid-cols-2 gap-3 mb-6">
 				<div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><div className="text-[10px] text-slate-500 font-bold mb-1">المهنة</div><div className="text-sm font-bold text-slate-900 truncate">{viewRecord.profession || '—'}</div></div>
 				<div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><div className="text-[10px] text-slate-500 font-bold mb-1">رقم الهاتف</div><div className="text-sm font-bold text-blue-600 font-['IBM_Plex_Mono'] truncate">{viewRecord.phone_number || '—'}</div></div>
 				<div className="col-span-2 bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
@@ -327,6 +330,28 @@ export default function Residents() {
 				<div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><div className="text-[10px] text-slate-500 font-bold mb-1">نوع السكن</div><div className="text-sm font-bold text-slate-900">{viewRecord.housing_type || '—'}</div></div>
 				<div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><div className="text-[10px] text-slate-500 font-bold mb-1">أفراد الأسرة</div><div className="text-sm font-black text-slate-900 font-['IBM_Plex_Mono']">{viewRecord.family_members_count}</div></div>
 			  </div>
+
+			  {/* ID Document Preview Area */}
+			  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+				<div className="flex items-center gap-2 mb-3">
+				  <FileText className="text-orange-500" size={16} />
+				  <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">مستند إثبات الهوية للتحقق</h4>
+				</div>
+				{viewRecord.id_image_url ? (
+				  <a href={viewRecord.id_image_url} target="_blank" rel="noreferrer" className="block relative w-full h-48 rounded-lg overflow-hidden group border border-slate-200">
+					<img src={viewRecord.id_image_url} alt="ID Document" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+					<div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+					  <span className="bg-white/90 text-slate-900 text-xs font-bold px-4 py-2 rounded-full">اضغط للتكبير</span>
+					</div>
+				  </a>
+				) : (
+				  <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center text-slate-400">
+					<ImageIcon size={24} className="mb-2 opacity-50" />
+					<span className="text-[11px] font-bold">لم يقم المواطن بإرفاق المستند</span>
+				  </div>
+				)}
+			  </div>
+
 			</div>
 			
 			<div className="p-4 flex gap-3 border-t border-slate-200 bg-white">
