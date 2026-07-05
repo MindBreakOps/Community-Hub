@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Building2, ArrowLeft, Mail, Globe, LifeBuoy,
   LayoutDashboard, Map, CreditCard, FileText,
   ChevronLeft, BarChart3, Users, ShieldCheck,
   X, Loader2, TrendingUp, CheckCircle2, Zap,
-  Home, ArrowRight
+  Home, ArrowRight, Sparkles,
 } from 'lucide-react';
 
 const OPS_API = 'https://script.google.com/macros/s/AKfycby7xDEoYBzGM7sAAAkX0LDTKNHo63LjbgmaC-0VLXESPFj7BSl10GE-sIqM-Ss3wE8/exec';
@@ -36,6 +36,98 @@ function useCounter(target, duration = 1400) {
   return [count, ref];
 }
 
+/* ─── scroll-reveal hook: adds .in-view once a section crosses into viewport ─── */
+function useReveal() {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+	const obs = new IntersectionObserver(([e]) => {
+	  if (e.isIntersecting) { setInView(true); obs.disconnect(); }
+	}, { threshold: 0.15 });
+	if (ref.current) obs.observe(ref.current);
+	return () => obs.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
+/* ── Signature element: an animated isometric residential block ──
+   Reused across the login and marketing surfaces as the visual
+   identity of the product — the community itself, GIS-linked and
+   alive, rather than a stock icon. */
+function CommunityBlock({ size = 340 }) {
+  const units = useMemo(
+	() => [
+	  { x: 30, y: 160, h: 78, lit: [0, 1] },
+	  { x: 108, y: 122, h: 116, lit: [1, 0, 1] },
+	  { x: 196, y: 160, h: 78, lit: [1] },
+	  { x: 264, y: 100, h: 138, lit: [0, 1, 0, 1] },
+	  { x: 342, y: 150, h: 88, lit: [1, 1] },
+	],
+	[]
+  );
+
+  return (
+	<svg
+	  viewBox="0 0 430 290"
+	  width={size}
+	  height={size * (290 / 430)}
+	  className="community-block"
+	  role="img"
+	  aria-label="رسم توضيحي لمجمع سكني رقمي متصل"
+	>
+	  <defs>
+		<linearGradient id="ldBlockFace" x1="0" y1="0" x2="0" y2="1">
+		  <stop offset="0%" stopColor="#1e293b" />
+		  <stop offset="100%" stopColor="#0f172a" />
+		</linearGradient>
+		<linearGradient id="ldBlockRoof" x1="0" y1="0" x2="1" y2="0">
+		  <stop offset="0%" stopColor="#dc2626" />
+		  <stop offset="100%" stopColor="#7f1d1d" />
+		</linearGradient>
+		<radialGradient id="ldGlow" cx="50%" cy="50%" r="50%">
+		  <stop offset="0%" stopColor="#dc2626" stopOpacity="0.35" />
+		  <stop offset="100%" stopColor="#dc2626" stopOpacity="0" />
+		</radialGradient>
+	  </defs>
+
+	  <ellipse cx="215" cy="255" rx="200" ry="20" fill="#000" opacity="0.04" />
+
+	  <path
+		d="M 55 225 L 135 225 L 225 225 L 300 225 L 375 225"
+		stroke="#dc2626"
+		strokeOpacity="0.3"
+		strokeWidth="2"
+		strokeDasharray="1 7"
+		strokeLinecap="round"
+		className="ld-gis-path"
+	  />
+
+	  {units.map((u, i) => (
+		<g key={i} className="ld-unit" style={{ animationDelay: `${i * 0.1}s` }}>
+		  <rect x={u.x} y={u.y} width="56" height={u.h} rx="4" fill="url(#ldBlockFace)" />
+		  <path d={`M ${u.x - 4} ${u.y} L ${u.x + 28} ${u.y - 22} L ${u.x + 60} ${u.y} Z`} fill="url(#ldBlockRoof)" />
+		  {u.lit.map((on, wi) => (
+			<rect
+			  key={wi}
+			  x={u.x + 10 + (wi % 2) * 24}
+			  y={u.y + 16 + Math.floor(wi / 2) * 26}
+			  width="13"
+			  height="15"
+			  rx="2"
+			  fill={on ? '#fbbf24' : '#334155'}
+			  className={on ? 'ld-window-lit' : ''}
+			  style={{ animationDelay: `${(i * 3 + wi) * 0.2}s` }}
+			/>
+		  ))}
+		  <circle cx={u.x + 28} cy="225" r={i === 2 ? 5 : 3} fill={i === 2 ? '#dc2626' : '#cbd5e1'} className={i === 2 ? 'ld-pulse-dot' : ''} />
+		</g>
+	  ))}
+
+	  <circle cx="215" cy="175" r="80" fill="url(#ldGlow)" opacity="0.4" className="ld-ambient-drift" />
+	</svg>
+  );
+}
+
 const tabs = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'لوحة القيادة' },
   { id: 'gis',       icon: Map,            label: 'الخريطة التفاعلية (GIS)' },
@@ -55,11 +147,17 @@ const features = [
 export default function Landing() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', company: '', size: '1-50' });
   const [residents, residentsRef]   = useCounter(1240);
   const [units, unitsRef]           = useCounter(320);
   const [occupancy, occupancyRef]   = useCounter(85);
+
+  const [statsRef, statsIn]       = useReveal();
+  const [simRef, simIn]           = useReveal();
+  const [featuresRef, featuresIn] = useReveal();
+  const [ctaRef, ctaIn]           = useReveal();
 
   const handleDemoRequest = async (e) => {
 	e.preventDefault();
@@ -87,9 +185,10 @@ export default function Landing() {
   return (
 	<>
 	  <style>{`
-		@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+		@import url('https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400..700&family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap');
 		* { box-sizing: border-box; }
 		body { margin: 0; }
+
 		@keyframes fadeUp {
 		  from { opacity: 0; transform: translateY(18px); }
 		  to   { opacity: 1; transform: translateY(0); }
@@ -99,6 +198,30 @@ export default function Landing() {
 		  100% { background-position: -200% 0; }
 		}
 		@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+		@keyframes ldWindowLit {
+		  0%, 100% { opacity: 1; filter: drop-shadow(0 0 3px rgba(251,191,36,0.7)); }
+		  50%      { opacity: 0.5; filter: drop-shadow(0 0 1px rgba(251,191,36,0.25)); }
+		}
+		@keyframes ldPulseDot {
+		  0%   { r: 3; opacity: 1; }
+		  70%  { r: 10; opacity: 0; }
+		  100% { r: 3; opacity: 0; }
+		}
+		@keyframes ldAmbientDrift {
+		  0%, 100% { transform: translate(0,0) scale(1); }
+		  50%      { transform: translate(8px,-10px) scale(1.05); }
+		}
+		@keyframes ldGisPathFlow { to { stroke-dashoffset: -16; } }
+		@keyframes ldUnitRise {
+		  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+		  to   { opacity: 1; transform: translateY(0) scale(1); }
+		}
+		@keyframes floatSlow {
+		  0%, 100% { transform: translateY(0); }
+		  50%      { transform: translateY(-10px); }
+		}
+
 		.fade-up    { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both; }
 		.fade-up-1  { animation-delay: .08s; }
 		.fade-up-2  { animation-delay: .16s; }
@@ -110,8 +233,49 @@ export default function Landing() {
 		  background-size: 200% 100%;
 		  animation: shimmer 2.5s linear infinite;
 		}
+
+		.ld-unit          { animation: ldUnitRise .6s cubic-bezier(.16,1,.3,1) both; transform-origin: bottom; }
+		.ld-window-lit    { animation: ldWindowLit 3.2s ease-in-out infinite; }
+		.ld-pulse-dot     { animation: ldPulseDot 2.1s cubic-bezier(0,.6,.4,1) infinite; transform-origin: center; }
+		.ld-ambient-drift { animation: ldAmbientDrift 6s ease-in-out infinite; }
+		.ld-gis-path      { animation: ldGisPathFlow 1.4s linear infinite; }
+		.hero-float       { animation: floatSlow 5s ease-in-out infinite; }
+
+		/* scroll reveal: hidden until parent gets .reveal-in */
+		.reveal-item {
+		  opacity: 0;
+		  transform: translateY(24px);
+		  transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+		}
+		.reveal-in .reveal-item { opacity: 1; transform: translateY(0); }
+		.reveal-in .reveal-item:nth-child(1) { transition-delay: 0s; }
+		.reveal-in .reveal-item:nth-child(2) { transition-delay: .08s; }
+		.reveal-in .reveal-item:nth-child(3) { transition-delay: .16s; }
+		.reveal-in .reveal-item:nth-child(4) { transition-delay: .24s; }
+		.reveal-in .reveal-item:nth-child(5) { transition-delay: .32s; }
+		.reveal-in .reveal-item:nth-child(6) { transition-delay: .4s; }
+
+		.feature-card {
+		  transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease, border-color .3s ease;
+		}
+		.feature-card:hover .feature-icon-wrap { transform: scale(1.12) rotate(-4deg); }
+		.feature-icon-wrap { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+
+		.navbar-link { position: relative; }
+		.navbar-link::after {
+		  content: '';
+		  position: absolute; right: 16px; left: 16px; bottom: 6px;
+		  height: 2px; background: #dc2626; border-radius: 2px;
+		  transform: scaleX(0); transform-origin: center;
+		  transition: transform .25s ease;
+		}
+		.navbar-link:hover::after { transform: scaleX(1); }
+
 		@media (prefers-reduced-motion: reduce) {
-		  .fade-up,.fade-up-1,.fade-up-2,.fade-up-3,.fade-up-4,.tab-panel { animation: none; }
+		  .fade-up,.fade-up-1,.fade-up-2,.fade-up-3,.fade-up-4,.tab-panel,
+		  .ld-unit,.ld-window-lit,.ld-pulse-dot,.ld-ambient-drift,.ld-gis-path,
+		  .hero-float { animation: none; }
+		  .reveal-item { opacity: 1; transform: none; transition: none; }
 		}
 	  `}</style>
 
@@ -124,7 +288,6 @@ export default function Landing() {
 		{/* ── Navbar ── */}
 		<nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
 		  <div className="max-w-7xl mx-auto px-5 h-[68px] flex items-center justify-between">
-			{/* Brand */}
 			<div className="flex items-center gap-3">
 			  <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shadow">
 				<img
@@ -134,14 +297,13 @@ export default function Landing() {
 				  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>'; }}
 				/>
 			  </div>
-			  <span className="text-xl font-black tracking-tight text-slate-900">حصاد</span>
+			  <span style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-xl tracking-tight text-slate-900">حصاد</span>
 			</div>
 
-			{/* Nav links */}
 			<div className="flex items-center gap-2">
 			  <Link
 				to="/subscriptions"
-				className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+				className="navbar-link px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-colors"
 			  >
 				الباقات والاشتراكات
 			  </Link>
@@ -157,23 +319,26 @@ export default function Landing() {
 		</nav>
 
 		{/* ── Hero ── */}
-		<section className="max-w-7xl mx-auto px-5 pt-28 pb-20 text-center flex flex-col items-center">
+		<section className="max-w-7xl mx-auto px-5 pt-24 pb-4 flex flex-col items-center text-center">
 		  <div className="fade-up inline-flex items-center gap-2 mb-7 px-4 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-bold text-slate-600">
 			<span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
 			النظام المؤسسي لإدارة المجتمعات السكنية
 		  </div>
 
-		  <h1 className="fade-up fade-up-1 text-5xl md:text-[68px] font-black leading-[1.12] text-slate-900 tracking-tight max-w-4xl mb-7">
+		  <h1
+			style={{ fontFamily: "'Reem Kufi', sans-serif" }}
+			className="fade-up fade-up-1 text-[42px] md:text-[62px] leading-[1.28] text-slate-900 max-w-4xl mb-7"
+		  >
 			إدارة رقمية متكاملة<br />
 			<span className="text-red-600">لمجتمعك السكني</span>
 		  </h1>
 
-		  <p className="fade-up fade-up-2 text-lg md:text-xl text-slate-500 mb-11 max-w-2xl leading-relaxed font-medium">
+		  <p className="fade-up fade-up-2 text-lg md:text-xl text-slate-500 mb-10 max-w-2xl leading-relaxed font-medium">
 			بنية تحتية برمجية متطورة توفر لوحات قياس ذكية، خرائط جغرافية&nbsp;(GIS)،
 			وهويات رقمية لضمان أعلى معايير التنظيم والأمان.
 		  </p>
 
-		  <div className="fade-up fade-up-3 flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
+		  <div className="fade-up fade-up-3 flex flex-col sm:flex-row items-center gap-3 w-full justify-center mb-16">
 			<button
 			  onClick={() => setIsModalOpen(true)}
 			  className="group w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-base flex items-center justify-center gap-3 hover:bg-black hover:-translate-y-0.5 transition-all shadow-xl shadow-slate-900/10"
@@ -188,10 +353,15 @@ export default function Landing() {
 			  <span>عرض الباقات والتسعير</span>
 			</Link>
 		  </div>
+
+		  {/* signature hero illustration — the community itself */}
+		  <div className="fade-up fade-up-4 hero-float leading-[0]">
+			<CommunityBlock size={340} />
+		  </div>
 		</section>
 
 		{/* ── Stats strip ── */}
-		<section className="border-y border-slate-200 bg-white py-10 mb-20">
+		<section ref={statsRef} className={`border-y border-slate-200 bg-white py-10 mb-20 reveal-item ${statsIn ? 'reveal-in' : ''}`}>
 		  <div className="max-w-4xl mx-auto px-5 grid grid-cols-3 gap-0 divide-x divide-x-reverse divide-slate-100">
 			{[
 			  { ref: residentsRef, val: residents, suffix: '+', label: 'ساكن مسجل' },
@@ -212,15 +382,14 @@ export default function Landing() {
 		</section>
 
 		{/* ── Interactive Simulator ── */}
-		<section className="max-w-6xl mx-auto px-5 mb-24">
+		<section ref={simRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${simIn ? 'reveal-in' : ''}`}>
 		  <div className="text-center mb-10">
-			<h2 className="text-3xl font-black text-slate-900 mb-2">استكشف الواجهات</h2>
+			<h2 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-3xl text-slate-900 mb-2">استكشف الواجهات</h2>
 			<p className="text-slate-500 font-medium">نظرة داخلية على إمكانيات النظام</p>
 		  </div>
 
 		  <div className="bg-white rounded-2xl shadow-[0_2px_24px_rgba(0,0,0,0.06)] border border-slate-200 overflow-hidden flex flex-col md:flex-row" style={{ minHeight: 480 }}>
 
-			{/* Sidebar */}
 			<div className="w-full md:w-64 bg-slate-50/80 border-b md:border-b-0 md:border-l border-slate-200 p-5 flex flex-col gap-1 shrink-0">
 			  <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest uppercase">الواجهات</div>
 			  {tabs.map((tab) => (
@@ -242,7 +411,6 @@ export default function Landing() {
 			  ))}
 			</div>
 
-			{/* Panel */}
 			<div className="flex-1 p-8 md:p-10 flex flex-col justify-center overflow-hidden">
 			  {activeTab === 'dashboard' && (
 				<div className="tab-panel w-full">
@@ -294,7 +462,7 @@ export default function Landing() {
 					{[...Array(12)].map((_, i) => (
 					  <div
 						key={i}
-						className={`w-[72px] h-14 rounded-lg border-2 flex items-center justify-center transition-all ${
+						className={`w-[72px] h-14 rounded-lg border-2 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${
 						  i === 4 ? 'bg-red-50 border-red-400 shadow-md shadow-red-200' :
 						  i === 7 ? 'bg-blue-50 border-blue-300' :
 						  'bg-white border-slate-200'
@@ -383,18 +551,18 @@ export default function Landing() {
 		</section>
 
 		{/* ── Features grid ── */}
-		<section className="max-w-6xl mx-auto px-5 mb-24">
+		<section ref={featuresRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${featuresIn ? 'reveal-in' : ''}`}>
 		  <div className="text-center mb-12">
-			<h2 className="text-3xl font-black text-slate-900 mb-2">كل ما تحتاجه في مكان واحد</h2>
+			<h2 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-3xl text-slate-900 mb-2">كل ما تحتاجه في مكان واحد</h2>
 			<p className="text-slate-500 font-medium">منظومة متكاملة مصممة لاحتياجات لجان الأحياء والمجمعات السكنية</p>
 		  </div>
 		  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 			{features.map((f, i) => (
 			  <div
 				key={i}
-				className="bg-white rounded-2xl border border-slate-200 p-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/80 transition-all duration-300 group"
+				className="feature-card reveal-item bg-white rounded-2xl border border-slate-200 p-6 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-slate-200/80 hover:border-slate-300 group"
 			  >
-				<div className={`w-11 h-11 ${f.bg} rounded-xl flex items-center justify-center mb-4`}>
+				<div className={`feature-icon-wrap w-11 h-11 ${f.bg} rounded-xl flex items-center justify-center mb-4`}>
 				  <f.icon size={20} className={f.color} />
 				</div>
 				<h3 className="font-black text-slate-900 mb-1.5">{f.title}</h3>
@@ -405,11 +573,11 @@ export default function Landing() {
 		</section>
 
 		{/* ── CTA banner ── */}
-		<section className="max-w-6xl mx-auto px-5 mb-24">
+		<section ref={ctaRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${ctaIn ? 'reveal-in' : ''}`}>
 		  <div className="bg-slate-900 rounded-2xl p-10 md:p-14 text-center relative overflow-hidden">
 			<div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%,rgba(220,38,38,0.6) 0%,transparent 50%),radial-gradient(circle at 80% 50%,rgba(99,102,241,0.4) 0%,transparent 50%)' }} />
 			<div className="relative z-10">
-			  <h2 className="text-3xl md:text-4xl font-black text-white mb-4">ابدأ رحلتك الرقمية اليوم</h2>
+			  <h2 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-3xl md:text-4xl text-white mb-4">ابدأ رحلتك الرقمية اليوم</h2>
 			  <p className="text-slate-400 mb-8 max-w-xl mx-auto font-medium leading-relaxed">
 				فريق Operix Solutions جاهز لتقديم عرض توضيحي مخصص لمجتمعك السكني
 			  </p>
@@ -440,7 +608,7 @@ export default function Landing() {
 				  <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
 					<Building2 size={16} className="text-white" />
 				  </div>
-				  <span className="font-black text-slate-900">حصاد</span>
+				  <span style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-slate-900">حصاد</span>
 				</div>
 				<p className="text-slate-500 text-sm leading-relaxed font-medium">
 				  النظام المؤسسي لإدارة المجتمعات السكنية، مدعوم بواسطة Operix Solutions.
@@ -452,6 +620,7 @@ export default function Landing() {
 				  <Link to="/"             className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">الصفحة الرئيسية</Link>
 				  <Link to="/subscriptions" className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">الباقات والاشتراكات</Link>
 				  <Link to="/gate"          className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">تسجيل الدخول</Link>
+				  <button onClick={() => setIsTermsOpen(true)} className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors text-right w-fit">الشروط والأحكام</button>
 				</div>
 			  </div>
 			  <div>
@@ -472,9 +641,12 @@ export default function Landing() {
 				</div>
 			  </div>
 			</div>
-			<div className="border-t border-slate-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+			<div className="border-t border-slate-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
 			  <span className="text-xs text-slate-400 font-medium">© {new Date().getFullYear()} Operix Solutions. جميع الحقوق محفوظة.</span>
-			  <span className="text-xs text-slate-400 font-medium">نظام حصاد لإدارة المجتمعات السكنية</span>
+			  <div className="flex items-center gap-4">
+				<button onClick={() => setIsTermsOpen(true)} className="text-xs text-slate-500 hover:text-red-600 font-bold transition-colors">الشروط والأحكام وسياسة الخصوصية</button>
+				<span className="text-xs text-slate-400 font-medium">نظام حصاد لإدارة المجتمعات السكنية</span>
+			  </div>
 			</div>
 		  </div>
 		</footer>
@@ -486,7 +658,7 @@ export default function Landing() {
 			<div className="relative bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden" style={{ animation: 'fadeUp .3s cubic-bezier(.16,1,.3,1) both' }}>
 			  <div className="h-1 shimmer-bar" />
 			  <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100">
-				<h3 className="text-xl font-black text-slate-900">طلب تجربة النظام</h3>
+				<h3 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-xl text-slate-900">طلب تجربة النظام</h3>
 				<button onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-all">
 				  <X size={18} />
 				</button>
@@ -547,7 +719,127 @@ export default function Landing() {
 			</div>
 		  </div>
 		)}
+
+		{/* ── Terms & Privacy Modal ── */}
+		{isTermsOpen && (
+		  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" dir="rtl">
+			<div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setIsTermsOpen(false)} />
+			<div
+			  className="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col"
+			  style={{ animation: 'fadeUp .3s cubic-bezier(.16,1,.3,1) both', maxHeight: '85vh' }}
+			>
+			  <div className="h-1 shimmer-bar shrink-0" />
+
+			  <div className="flex justify-between items-start px-6 py-5 border-b border-slate-100 shrink-0">
+				<div className="flex items-center gap-3">
+				  <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shrink-0">
+					<ShieldCheck size={16} className="text-white" />
+				  </div>
+				  <div>
+					<h3 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-lg text-slate-900 leading-tight">الشروط والأحكام وسياسة الخصوصية</h3>
+					<p className="text-xs text-slate-400 font-bold mt-0.5">نظام حصاد — من إنتاج Operix Solutions</p>
+				  </div>
+				</div>
+				<button onClick={() => setIsTermsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-all shrink-0">
+				  <X size={18} />
+				</button>
+			  </div>
+
+			  <div className="px-6 py-6 overflow-y-auto space-y-6">
+
+				<div>
+				  <div className="flex items-center gap-2 mb-2">
+					<div className="w-6 h-6 rounded-md bg-red-50 flex items-center justify-center shrink-0">
+					  <Building2 size={12} className="text-red-600" />
+					</div>
+					<h4 className="font-black text-slate-900 text-sm">المنتج والملكية</h4>
+				  </div>
+				  <p className="text-sm text-slate-600 leading-relaxed font-medium pr-8">
+					نظام "حصاد" هو منتج برمجي مقدَّم من Operix Solutions لإدارة المجتمعات السكنية. جميع الحقوق البرمجية والفكرية المتعلقة بالنظام مملوكة لـ Operix Solutions، ويُمنح المشترك حق استخدام النظام وفق باقة الاشتراك المختارة فقط.
+				  </p>
+				</div>
+
+				<div>
+				  <div className="flex items-center gap-2 mb-2">
+					<div className="w-6 h-6 rounded-md bg-amber-50 flex items-center justify-center shrink-0">
+					  <AlertTriangleIcon />
+					</div>
+					<h4 className="font-black text-slate-900 text-sm">إخلاء المسؤولية عن الاستخدام</h4>
+				  </div>
+				  <p className="text-sm text-slate-600 leading-relaxed font-medium pr-8">
+					لا تتحمّل Operix Solutions أي مسؤولية عن أي إساءة استخدام للنظام من قِبل المشترك أو مستخدميه، أو عن أي قرارات أو نتائج مترتبة على البيانات المُدخلة أو المُدارة عبر النظام. تقع مسؤولية صحة البيانات المُدخلة وطريقة استخدام صلاحيات الوصول بالكامل على عاتق الجهة المشتركة وإدارتها.
+				  </p>
+				</div>
+
+				<div>
+				  <div className="flex items-center gap-2 mb-2">
+					<div className="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center shrink-0">
+					  <ShieldCheck size={12} className="text-emerald-600" />
+					</div>
+					<h4 className="font-black text-slate-900 text-sm">حماية البيانات والتشفير</h4>
+				  </div>
+				  <p className="text-sm text-slate-600 leading-relaxed font-medium pr-8">
+					تلتزم Operix Solutions بتشفير جميع البيانات المخزَّنة والمنقولة عبر النظام من جهتنا وفق أفضل الممارسات الأمنية المتاحة، حفاظاً على خصوصية السكان وسرية المعلومات الإدارية والمالية للمجتمع السكني.
+				  </p>
+				</div>
+
+				<div>
+				  <div className="flex items-center gap-2 mb-2">
+					<div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+					  <FileText size={12} className="text-blue-600" />
+					</div>
+					<h4 className="font-black text-slate-900 text-sm">استخدام البيانات</h4>
+				  </div>
+				  <p className="text-sm text-slate-600 leading-relaxed font-medium pr-8">
+					تُستخدم البيانات المُدخلة في النظام حصراً لتقديم الخدمة للمجتمع السكني المشترك، ولا تُشارَك مع أي طرف ثالث دون موافقة صريحة، إلا في الحالات التي يقتضيها القانون أو حماية النظام من الاستخدام غير المشروع.
+				  </p>
+				</div>
+
+				<div>
+				  <div className="flex items-center gap-2 mb-2">
+					<div className="w-6 h-6 rounded-md bg-violet-50 flex items-center justify-center shrink-0">
+					  <Mail size={12} className="text-violet-600" />
+					</div>
+					<h4 className="font-black text-slate-900 text-sm">التواصل بخصوص هذه السياسة</h4>
+				  </div>
+				  <p className="text-sm text-slate-600 leading-relaxed font-medium pr-8">
+					لأي استفسار متعلق بالشروط والأحكام أو سياسة الخصوصية، يرجى التواصل عبر{' '}
+					<a href="mailto:support@operix-solutions.com" style={{ fontFamily: "'IBM Plex Mono', monospace" }} className="text-red-600 font-bold hover:underline" dir="ltr">
+					  support@operix-solutions.com
+					</a>.
+				  </p>
+				</div>
+
+				<div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3">
+				  <Sparkles size={15} className="text-slate-400 shrink-0 mt-0.5" />
+				  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+					باستخدامك لنظام حصاد، فإنك تُقرّ بموافقتك على هذه الشروط والأحكام وسياسة الخصوصية. قد يتم تحديث هذه السياسة من وقت لآخر، وسيتم إعلام المشتركين بأي تغييرات جوهرية.
+				  </p>
+				</div>
+			  </div>
+
+			  <div className="px-6 py-4 border-t border-slate-100 shrink-0">
+				<button
+				  onClick={() => setIsTermsOpen(false)}
+				  className="w-full h-11 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-all"
+				>
+				  فهمت، إغلاق
+				</button>
+			  </div>
+			</div>
+		  </div>
+		)}
 	  </div>
 	</>
+  );
+}
+
+function AlertTriangleIcon() {
+  return (
+	<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+	  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+	  <path d="M12 9v4" />
+	  <path d="M12 17h.01" />
+	</svg>
   );
 }
