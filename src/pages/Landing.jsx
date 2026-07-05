@@ -36,19 +36,7 @@ function useCounter(target, duration = 1400) {
   return [count, ref];
 }
 
-/* ─── scroll-reveal hook: adds .in-view once a section crosses into viewport ─── */
-function useReveal() {
-  const ref = useRef(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-	const obs = new IntersectionObserver(([e]) => {
-	  if (e.isIntersecting) { setInView(true); obs.disconnect(); }
-	}, { threshold: 0.15 });
-	if (ref.current) obs.observe(ref.current);
-	return () => obs.disconnect();
-  }, []);
-  return [ref, inView];
-}
+/* ─── (scroll reveal removed — was causing content to stay invisible) ─── */
 
 /* ── Signature element: an animated isometric residential block ──
    Reused across the login and marketing surfaces as the visual
@@ -154,10 +142,6 @@ export default function Landing() {
   const [units, unitsRef]           = useCounter(320);
   const [occupancy, occupancyRef]   = useCounter(85);
 
-  const [statsRef, statsIn]       = useReveal();
-  const [simRef, simIn]           = useReveal();
-  const [featuresRef, featuresIn] = useReveal();
-  const [ctaRef, ctaIn]           = useReveal();
 
   const handleDemoRequest = async (e) => {
 	e.preventDefault();
@@ -241,19 +225,7 @@ export default function Landing() {
 		.ld-gis-path      { animation: ldGisPathFlow 1.4s linear infinite; }
 		.hero-float       { animation: floatSlow 5s ease-in-out infinite; }
 
-		/* scroll reveal: hidden until parent gets .reveal-in */
-		.reveal-item {
-		  opacity: 0;
-		  transform: translateY(24px);
-		  transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
-		}
-		.reveal-in .reveal-item { opacity: 1; transform: translateY(0); }
-		.reveal-in .reveal-item:nth-child(1) { transition-delay: 0s; }
-		.reveal-in .reveal-item:nth-child(2) { transition-delay: .08s; }
-		.reveal-in .reveal-item:nth-child(3) { transition-delay: .16s; }
-		.reveal-in .reveal-item:nth-child(4) { transition-delay: .24s; }
-		.reveal-in .reveal-item:nth-child(5) { transition-delay: .32s; }
-		.reveal-in .reveal-item:nth-child(6) { transition-delay: .4s; }
+		/* scroll reveal styles removed */
 
 		.feature-card {
 		  transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease, border-color .3s ease;
@@ -275,7 +247,6 @@ export default function Landing() {
 		  .fade-up,.fade-up-1,.fade-up-2,.fade-up-3,.fade-up-4,.tab-panel,
 		  .ld-unit,.ld-window-lit,.ld-pulse-dot,.ld-ambient-drift,.ld-gis-path,
 		  .hero-float { animation: none; }
-		  .reveal-item { opacity: 1; transform: none; transition: none; }
 		}
 	  `}</style>
 
@@ -361,7 +332,7 @@ export default function Landing() {
 		</section>
 
 		{/* ── Stats strip ── */}
-		<section ref={statsRef} className={`border-y border-slate-200 bg-white py-10 mb-20 reveal-item ${statsIn ? 'reveal-in' : ''}`}>
+		<section className="border-y border-slate-200 bg-white py-10 mb-20">
 		  <div className="max-w-4xl mx-auto px-5 grid grid-cols-3 gap-0 divide-x divide-x-reverse divide-slate-100">
 			{[
 			  { ref: residentsRef, val: residents, suffix: '+', label: 'ساكن مسجل' },
@@ -382,7 +353,7 @@ export default function Landing() {
 		</section>
 
 		{/* ── Interactive Simulator ── */}
-		<section ref={simRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${simIn ? 'reveal-in' : ''}`}>
+		<section className="max-w-6xl mx-auto px-5 mb-24">
 		  <div className="text-center mb-10">
 			<h2 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-3xl text-slate-900 mb-2">استكشف الواجهات</h2>
 			<p className="text-slate-500 font-medium">نظرة داخلية على إمكانيات النظام</p>
@@ -551,7 +522,7 @@ export default function Landing() {
 		</section>
 
 		{/* ── Features grid ── */}
-		<section ref={featuresRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${featuresIn ? 'reveal-in' : ''}`}>
+		<section className="max-w-6xl mx-auto px-5 mb-24">
 		  <div className="text-center mb-12">
 			<h2 style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-3xl text-slate-900 mb-2">كل ما تحتاجه في مكان واحد</h2>
 			<p className="text-slate-500 font-medium">منظومة متكاملة مصممة لاحتياجات لجان الأحياء والمجمعات السكنية</p>
@@ -560,7 +531,7 @@ export default function Landing() {
 			{features.map((f, i) => (
 			  <div
 				key={i}
-				className="feature-card reveal-item bg-white rounded-2xl border border-slate-200 p-6 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-slate-200/80 hover:border-slate-300 group"
+				className="feature-card bg-white rounded-2xl border border-slate-200 p-6 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-slate-200/80 hover:border-slate-300 group"
 			  >
 				<div className={`feature-icon-wrap w-11 h-11 ${f.bg} rounded-xl flex items-center justify-center mb-4`}>
 				  <f.icon size={20} className={f.color} />
@@ -573,7 +544,7 @@ export default function Landing() {
 		</section>
 
 		{/* ── CTA banner ── */}
-		<section ref={ctaRef} className={`max-w-6xl mx-auto px-5 mb-24 reveal-item ${ctaIn ? 'reveal-in' : ''}`}>
+		<section className="max-w-6xl mx-auto px-5 mb-24">
 		  <div className="bg-slate-900 rounded-2xl p-10 md:p-14 text-center relative overflow-hidden">
 			<div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%,rgba(220,38,38,0.6) 0%,transparent 50%),radial-gradient(circle at 80% 50%,rgba(99,102,241,0.4) 0%,transparent 50%)' }} />
 			<div className="relative z-10">
