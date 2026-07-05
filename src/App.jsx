@@ -21,6 +21,7 @@ import Profile from './pages/Profile';
 import Committee from './pages/Committee';
 import Certificates from './pages/Certificates';
 import Settings from './pages/Settings';
+import RegistrationManager from './pages/RegistrationManager';
 // A wrapper to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -91,6 +92,7 @@ function AppRoutes() {
        <Route path="committee" element={<Committee />} />
        <Route path="certificates" element={<Certificates />} />
        <Route path="settings" element={<Settings />} />
+       <Route path="portal-manager" element={<RegistrationManager />} />
       </Route>
       
       {/* Catch-all redirect */}

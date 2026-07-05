@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, Map, Award, Shield, Settings, FileText, User, Share2, QrCode } from 'lucide-react';
+import { Home, Users, Map,Globe, Award, Shield, Settings, FileText, User, Share2, QrCode } from 'lucide-react';
 
 export default function Sidebar() {
   const { user, workspace, signOut } = useAuth();
@@ -57,6 +57,9 @@ export default function Sidebar() {
 			<div className="text-[9px] font-extrabold text-white/20 uppercase tracking-[2px] px-2 mt-6 mb-2 font-['IBM_Plex_Mono']">إدارة</div>
 			<NavLink to={`${basePath}/committee`} className={navItemClass}>
 			  <Award size={18} /><span>لجنة الحي</span>
+			</NavLink>
+			<NavLink to={`${basePath}/portal-manager`} className={navItemClass}>
+			  <Globe size={18} /><span>بوابة التسجيل الخارجي</span>
 			</NavLink>
 			<NavLink to={`${basePath}/certificates`} className={navItemClass}>
 			  <FileText size={18} /><span>الشهادات</span>
