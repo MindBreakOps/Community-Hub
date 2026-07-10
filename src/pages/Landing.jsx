@@ -597,52 +597,55 @@ export default function Landing() {
 		</section>
 
 		{/* ── Footer ── */}
-		<footer className="border-t border-slate-200 bg-white">
-		  <div className="max-w-7xl mx-auto px-5 py-12">
+		<footer className="border-t-2 border-red-600 bg-black relative overflow-hidden">
+		  {/* Subtle red ambient glow at the top of the footer */}
+		  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-red-600/10 blur-[80px] pointer-events-none" />
+		
+		  <div className="max-w-7xl mx-auto px-5 py-12 relative z-10">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
 			  <div>
 				<div className="flex items-center gap-2.5 mb-3">
-				  <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+				  <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-600/20">
 					<Building2 size={16} className="text-white" />
 				  </div>
-				  <span style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-slate-900">حصاد</span>
+				  <span style={{ fontFamily: "'Reem Kufi', sans-serif" }} className="text-white text-xl">حصاد</span>
 				</div>
-				<p className="text-slate-500 text-sm leading-relaxed font-medium">
+				<p className="text-slate-300 text-sm leading-relaxed font-medium">
 				  النظام المؤسسي لإدارة المجتمعات السكنية، مدعوم بواسطة Operix Solutions.
 				</p>
 			  </div>
 			  <div>
-				<div className="text-xs font-black text-slate-400 mb-4 tracking-widest uppercase">روابط</div>
+				<div className="text-xs font-black text-red-500 mb-4 tracking-widest uppercase">روابط</div>
 				<div className="flex flex-col gap-2">
-				  <Link to="/"             className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">الصفحة الرئيسية</Link>
-				  <Link to="/subscriptions" className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">الباقات والاشتراكات</Link>
-				  <Link to="/gate"          className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors">تسجيل الدخول</Link>
-				  <button onClick={() => setIsTermsOpen(true)} className="text-sm text-slate-600 hover:text-red-600 font-bold transition-colors text-right w-fit">الشروط والأحكام</button>
+				  <Link to="/" className="text-sm text-white hover:text-red-400 font-bold transition-colors">الصفحة الرئيسية</Link>
+				  <Link to="/subscriptions" className="text-sm text-white hover:text-red-400 font-bold transition-colors">الباقات والاشتراكات</Link>
+				  <Link to="/gate" className="text-sm text-white hover:text-red-400 font-bold transition-colors">تسجيل الدخول</Link>
+				  <button onClick={() => setIsTermsOpen(true)} className="text-sm text-white hover:text-red-400 font-bold transition-colors text-right w-fit">الشروط والأحكام</button>
 				</div>
 			  </div>
 			  <div>
-				<div className="text-xs font-black text-slate-400 mb-4 tracking-widest uppercase">تواصل معنا</div>
+				<div className="text-xs font-black text-red-500 mb-4 tracking-widest uppercase">تواصل معنا</div>
 				<div className="flex flex-col gap-3">
-				  <a href="https://www.operix-solutions.com" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors">
-					<Globe size={15} className="text-slate-400" />
+				  <a href="https://www.operix-solutions.com" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-white hover:text-red-400 font-medium transition-colors">
+					<Globe size={15} className="text-red-500" />
 					<span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>www.operix-solutions.com</span>
 				  </a>
-				  <a href="mailto:info@operix-solutions.com" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors">
-					<Mail size={15} className="text-slate-400" />
+				  <a href="mailto:info@operix-solutions.com" className="flex items-center gap-2 text-sm text-white hover:text-red-400 font-medium transition-colors">
+					<Mail size={15} className="text-red-500" />
 					<span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>info@operix-solutions.com</span>
 				  </a>
-				  <a href="mailto:support@operix-solutions.com" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors">
-					<LifeBuoy size={15} className="text-slate-400" />
+				  <a href="mailto:support@operix-solutions.com" className="flex items-center gap-2 text-sm text-white hover:text-red-400 font-medium transition-colors">
+					<LifeBuoy size={15} className="text-red-500" />
 					<span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>support@operix-solutions.com</span>
 				  </a>
 				</div>
 			  </div>
 			</div>
-			<div className="border-t border-slate-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+			<div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
 			  <span className="text-xs text-slate-400 font-medium">© {new Date().getFullYear()} Operix Solutions. جميع الحقوق محفوظة.</span>
 			  <div className="flex items-center gap-4">
-				<button onClick={() => setIsTermsOpen(true)} className="text-xs text-slate-500 hover:text-red-600 font-bold transition-colors">الشروط والأحكام وسياسة الخصوصية</button>
-				<span className="text-xs text-slate-400 font-medium">نظام حصاد لإدارة المجتمعات السكنية</span>
+				<button onClick={() => setIsTermsOpen(true)} className="text-xs text-slate-400 hover:text-white font-bold transition-colors">الشروط والأحكام وسياسة الخصوصية</button>
+				<span className="text-xs text-slate-500 font-medium">نظام حصاد لإدارة المجتمعات السكنية</span>
 			  </div>
 			</div>
 		  </div>
