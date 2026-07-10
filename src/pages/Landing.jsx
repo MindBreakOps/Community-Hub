@@ -116,6 +116,26 @@ function CommunityBlock({ size = 340 }) {
   );
 }
 
+const countries = [
+  { code: 'SA', name: 'السعودية',     dial: '+966' },
+  { code: 'SD', name: 'السودان',      dial: '+249' },
+  { code: 'QA', name: 'قطر',          dial: '+974' },
+  { code: 'OM', name: 'عُمان',        dial: '+968' },
+  { code: 'KW', name: 'الكويت',       dial: '+965' },
+  { code: 'BH', name: 'البحرين',      dial: '+973' },
+  { code: 'EG', name: 'مصر',          dial: '+20'  },
+  { code: 'JO', name: 'الأردن',       dial: '+962' },
+  { code: 'IQ', name: 'العراق',       dial: '+964' },
+  { code: 'YE', name: 'اليمن',        dial: '+967' },
+  { code: 'LB', name: 'لبنان',        dial: '+961' },
+  { code: 'SY', name: 'سوريا',        dial: '+963' },
+  { code: 'PS', name: 'فلسطين',       dial: '+970' },
+  { code: 'LY', name: 'ليبيا',        dial: '+218' },
+  { code: 'MA', name: 'المغرب',       dial: '+212' },
+  { code: 'TN', name: 'تونس',         dial: '+216' },
+  { code: 'DZ', name: 'الجزائر',      dial: '+213' },
+];
+
 const tabs = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'لوحة القيادة' },
   { id: 'gis',       icon: Map,            label: 'الخريطة التفاعلية (GIS)' },
@@ -137,11 +157,17 @@ export default function Landing() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', company: '', size: '1-50' });
+  const [formData, setFormData] = useState({ name: '', email: '', country: '', phone: '', company: '', size: '1-50' });
   const [residents, residentsRef]   = useCounter(1240);
   const [units, unitsRef]           = useCounter(320);
   const [occupancy, occupancyRef]   = useCounter(85);
 
+
+  const handleCountryChange = (e) => {
+	const code = e.target.value;
+	const country = countries.find(c => c.code === code);
+	setFormData(prev => ({ ...prev, country: code, phone: country ? `${country.dial} ` : '' }));
+  };
 
   const handleDemoRequest = async (e) => {
 	e.preventDefault();
@@ -153,12 +179,12 @@ export default function Landing() {
 		body: JSON.stringify({
 		  action: 'send_email', emailTo: TARGET_EMAIL,
 		  subject: `طلب تجربة/تواصل جديد: ${formData.company}`,
-		  body: `الاسم: ${formData.name}\nالبريد: ${formData.email}\nالجهة: ${formData.company}\nعدد الوحدات: ${formData.size}`,
+		  body: `الاسم: ${formData.name}\nالبريد: ${formData.email}\nالدولة: ${countries.find(c => c.code === formData.country)?.name || formData.country}\nالهاتف: ${formData.phone}\nالجهة: ${formData.company}\nعدد الوحدات: ${formData.size}`,
 		}),
 	  });
 	  alert('تم إرسال طلبك بنجاح! سيتواصل معك فريقنا قريباً.');
 	  setIsModalOpen(false);
-	  setFormData({ name: '', email: '', company: '', size: '1-50' });
+	  setFormData({ name: '', email: '', country: '', phone: '', company: '', size: '1-50' });
 	} catch {
 	  alert('حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.');
 	} finally {
@@ -652,6 +678,33 @@ export default function Landing() {
 					/>
 				  </div>
 				))}
+				<div className="grid grid-cols-2 gap-3">
+				  <div>
+					<label className="block text-xs font-black text-slate-500 mb-1.5">الدولة</label>
+					<select
+					  required
+					  value={formData.country}
+					  onChange={handleCountryChange}
+					  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-lg px-4 text-sm text-slate-900 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-500/15 transition-all cursor-pointer"
+					>
+					  <option value="" disabled>اختر الدولة</option>
+					  {countries.map(c => (
+						<option key={c.code} value={c.code}>{c.name}</option>
+					  ))}
+					</select>
+				  </div>
+				  <div>
+					<label className="block text-xs font-black text-slate-500 mb-1.5">رقم الهاتف</label>
+					<input
+					  type="tel" required dir="ltr"
+					  value={formData.phone}
+					  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+					  placeholder="اختر الدولة أولاً"
+					  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+					  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-lg px-4 text-sm text-slate-900 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-500/15 transition-all"
+					/>
+				  </div>
+				</div>
 				<div className="grid grid-cols-2 gap-3">
 				  <div>
 					<label className="block text-xs font-black text-slate-500 mb-1.5">اسم المجمع / الجهة</label>
